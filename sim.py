@@ -1,6 +1,11 @@
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import heapq
+
+matplotlib.use('TkAgg')
+
+# Classes
 
 class Receiver:
     def __init__(self, x, y, sensitivity):
@@ -35,6 +40,9 @@ class Space:
         ]
 
 
+# Function for the noise penalty
+
+
 def calc_noise_penalty(x, y, drone, receiver_list, k=5, epsilon=1.0):
     max_pen = 0
 
@@ -60,8 +68,6 @@ def path_distance(path):
     if path is None or len(path) < 2:
         return 0.0
     return sum(euclid_dist(a, b) for a, b in zip(path, path[1:]))
-
-# Return cumulative noise cost
 
 def generate_path(drone, goal, receiver_list, space, k=5, noise_weight=1.0, epsilon=1.0):
     start = tuple(drone.start)
