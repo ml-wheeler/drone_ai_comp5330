@@ -55,6 +55,12 @@ def calc_noise_penalty(x, y, drone, receiver_list, k=5, epsilon=1.0):
 def euclid_dist(p1, p2):
     return np.linalg.norm(np.array(p1) - np.array(p2))
 
+
+def path_distance(path):
+    if path is None or len(path) < 2:
+        return 0.0
+    return sum(euclid_dist(a, b) for a, b in zip(path, path[1:]))
+
 # Return cumulative noise cost
 
 def generate_path(drone, goal, receiver_list, space, k=5, noise_weight=1.0, epsilon=1.0):
@@ -136,7 +142,9 @@ def create_dashboard(drone, space, max_receivers=6):
     fig, ax = plt.subplots(figsize=(14, 7))
 
     plt.subplots_adjust(left=0.5)
-    _, path = generate_path(drone, goal, receiver_list, space, k=k_val, noise_weight = lambda_val)
+    initial_noise, path = generate_path(
+        drone, goal, receiver_list, space, k=k_val, noise_weight=lambda_val
+    )
 
     path = np.array(path)
 
@@ -153,8 +161,10 @@ def create_dashboard(drone, space, max_receivers=6):
     recv_sc = ax.scatter([], [], c='red', zorder=10, label='Receivers')
     ax.legend(loc='upper left')
 
-    score_txt = fig.text(0.04, 0.26, 'Noise score: --', fontsize=12,
+    score_txt = fig.text(0.04, 0.26, f'Noise score: {initial_noise:.2f}', fontsize=11,
                          fontweight='bold', va='center')
+    distance_txt = fig.text(0.25, 0.26, f'Distance: {path_distance(path):.2f}', fontsize=11,
+                            fontweight='bold', va='center')
 
     for r in receiver_list:
         plt.plot(r.x, r.y, marker='o', markersize=r.sensitivity*10, color='red', zorder=10.0)
@@ -294,8 +304,10 @@ def create_dashboard(drone, space, max_receivers=6):
             new_path = np.array(new_path)
             l.set_data(new_path[:, 0], new_path[:, 1])
             score_txt.set_text(f'Noise score: {total_noise_gen:.2f}')
+            distance_txt.set_text(f'Distance: {path_distance(new_path):.2f}')
         else:
             score_txt.set_text('Noise score: no path found')
+            distance_txt.set_text('Distance: --')
 
         fig.canvas.draw_idle()
 
